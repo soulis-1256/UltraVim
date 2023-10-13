@@ -135,7 +135,7 @@ require('lazy').setup({
   },
 
   {
-    -- filebar
+    -- winbar
     "utilyre/barbecue.nvim",
     name = "barbecue",
     version = "*",
@@ -149,6 +149,12 @@ require('lazy').setup({
         create_autocmd = false, -- prevent barbecue from updating itself automatically
       },
     },
+  },
+
+  {
+    'akinsho/toggleterm.nvim',
+    version = "*",
+    config = true
   },
 
   {
@@ -196,8 +202,8 @@ require('lazy').setup({
   -- NOTE: Next Step on Your Neovim Journey: Add/Configure additional "plugins" for kickstart
   --       These are some example plugins that I've included in the kickstart repository.
   --       Uncomment any of the lines below to enable them.
-  -- require 'kickstart.plugins.autoformat',
-  -- require 'kickstart.plugins.debug',
+require 'ultravim.plugins.autoformat',
+require 'ultravim.plugins.debug',
 
   -- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
   --    You can use this folder to prevent any conflicts with this init.lua if you're interested in keeping
@@ -339,6 +345,13 @@ require('telescope').setup {
       i = {
         ['<C-u>'] = false,
         ['<C-d>'] = false,
+      },
+    },
+  },
+  pickers = {
+      find_files = {
+        find_command = {
+          'rg', '--files', '--hidden', '-g', '!.git'
       },
     },
   },
@@ -491,6 +504,10 @@ local on_attach = function(_, bufnr)
   end, { desc = 'Format current buffer with LSP' })
 end
 
+-- [[ Configure Terminal ]]
+--vim.api.nvim_set_keymap('n', '<leader>tf', [[:ToggleTerm direction=float<CR>]], { noremap = true, silent = true })
+vim.keymap.set('n', '<leader>tf', [[:ToggleTerm direction=float<CR>]], { desc = '[F]loating Terminal' })
+
 -- document existing key chains
 require('which-key').register {
   ['<leader>c'] = { name = '[C]ode', _ = 'which_key_ignore' },
@@ -499,6 +516,7 @@ require('which-key').register {
   ['<leader>h'] = { name = 'More git', _ = 'which_key_ignore' },
   ['<leader>r'] = { name = '[R]ename', _ = 'which_key_ignore' },
   ['<leader>s'] = { name = '[S]earch', _ = 'which_key_ignore' },
+  ['<leader>t'] = { name = '[T]erminal', _ = 'which_key_ignore' },
   ['<leader>w'] = { name = '[W]orkspace', _ = 'which_key_ignore' },
 }
 
@@ -533,12 +551,9 @@ require("lspconfig").clangd.setup {
     "--clang-tidy",
   },
   on_attach = function (client, bufnr)
-    navic.attach(client, bufnr)
     client.server_capabilities.signatureHelpProvider = false
     on_attach(client, bufnr)
   end,
-  capabilities = capabilities,
-  on_attach = on_attach
 }
 
 -- Setup neovim lua configuration
