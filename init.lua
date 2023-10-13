@@ -23,6 +23,11 @@ vim.opt.rtp:prepend(lazypath)
 --  You can also configure plugins after the setup call,
 --    as they will be available in your neovim runtime.
 require('lazy').setup({
+  --1256
+  --lazy = true,
+  --install = {
+  --colorsheme = { 'tokyonight' }
+  --},
   -- NOTE: First, some plugins that don't require any configuration
 
   -- Git related plugins
@@ -68,7 +73,7 @@ require('lazy').setup({
   },
 
   -- Useful plugin to show you pending keybinds.
-  { 'folke/which-key.nvim', opts = {} },
+  { 'folke/which-key.nvim',  opts = {} },
   {
     -- Adds git related signs to the gutter, as well as utilities for managing changes
     'lewis6991/gitsigns.nvim',
@@ -114,7 +119,7 @@ require('lazy').setup({
     priority = 1000,
     opts = {
       style = "night",
-      transparent= true,
+      transparent = true,
       styles = {
         sidebars = "transparent",
         floats = "transparent",
@@ -145,7 +150,7 @@ require('lazy').setup({
     },
     opts = {
       options = {
-        theme= "tokyonight",
+        theme = "tokyonight",
         create_autocmd = false, -- prevent barbecue from updating itself automatically
       },
     },
@@ -202,8 +207,8 @@ require('lazy').setup({
   -- NOTE: Next Step on Your Neovim Journey: Add/Configure additional "plugins" for kickstart
   --       These are some example plugins that I've included in the kickstart repository.
   --       Uncomment any of the lines below to enable them.
-require 'ultravim.plugins.autoformat',
-require 'ultravim.plugins.debug',
+  require 'ultravim.plugins.autoformat',
+  require 'ultravim.plugins.debug',
 
   -- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
   --    You can use this folder to prevent any conflicts with this init.lua if you're interested in keeping
@@ -223,7 +228,7 @@ vim.cmd.colorscheme('tokyonight')
 
 -- barbecue
 vim.api.nvim_create_autocmd({
-  "WinScrolled", -- or WinResized on NVIM-v0.9 and higher
+  "WinResized", -- or WinScrolled on lower than NVIM-v0.9
   "BufWinEnter",
   "CursorHold",
   "InsertLeave",
@@ -242,6 +247,7 @@ vim.o.hlsearch = false
 
 -- Make line numbers default
 vim.wo.number = true
+vim.wo.relativenumber = true
 
 -- Enable mouse mode
 vim.o.mouse = 'a'
@@ -300,8 +306,8 @@ require('lualine').setup {
   options = {
     icons_enabled = true,
     theme = 'auto',
-    component_separators = { left = '', right = ''},
-    section_separators = { left = '', right = ''},
+    component_separators = { left = '', right = '' },
+    section_separators = { left = '', right = '' },
     disabled_filetypes = {
       statusline = {},
       winbar = {},
@@ -316,18 +322,18 @@ require('lualine').setup {
     }
   },
   sections = {
-    lualine_a = {'mode'},
-    lualine_b = {'branch', 'diff', 'diagnostics'},
-    lualine_c = {'filename'},
-    lualine_x = {'encoding', 'fileformat', 'filetype'},
-    lualine_y = {'progress'},
-    lualine_z = {'location'}
+    lualine_a = { 'mode' },
+    lualine_b = { 'branch', 'diff', 'diagnostics' },
+    lualine_c = { 'filename' },
+    lualine_x = { 'encoding', 'fileformat', 'filetype' },
+    lualine_y = { 'progress' },
+    lualine_z = { 'location' }
   },
   inactive_sections = {
     lualine_a = {},
     lualine_b = {},
-    lualine_c = {'filename'},
-    lualine_x = {'location'},
+    lualine_c = { 'filename' },
+    lualine_x = { 'location' },
     lualine_y = {},
     lualine_z = {}
   },
@@ -349,9 +355,9 @@ require('telescope').setup {
     },
   },
   pickers = {
-      find_files = {
-        find_command = {
-          'rg', '--files', '--hidden', '-g', '!.git'
+    find_files = {
+      find_command = {
+        'rg', '--files', '--hidden', '-g', '!.git'
       },
     },
   },
@@ -536,6 +542,8 @@ require('mason-lspconfig').setup()
 local servers = {
   clangd = {},
 
+  bashls = {},
+
   lua_ls = {
     Lua = {
       workspace = { checkThirdParty = false },
@@ -550,7 +558,7 @@ require("lspconfig").clangd.setup {
     "--header-insertion=never",
     "--clang-tidy",
   },
-  on_attach = function (client, bufnr)
+  on_attach = function(client, bufnr)
     client.server_capabilities.signatureHelpProvider = false
     on_attach(client, bufnr)
   end,
