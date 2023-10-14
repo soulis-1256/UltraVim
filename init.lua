@@ -204,6 +204,10 @@ require('lazy').setup({
     build = ':TSUpdate',
   },
 
+  {
+    'andymass/vim-matchup'
+  },
+
   -- NOTE: Next Step on Your Neovim Journey: Add/Configure additional "plugins" for kickstart
   --       These are some example plugins that I've included in the kickstart repository.
   --       Uncomment any of the lines below to enable them.
@@ -248,6 +252,10 @@ vim.o.hlsearch = false
 -- Make line numbers default
 vim.wo.number = true
 vim.wo.relativenumber = true
+
+-- Options for vim-matchup
+vim.g.matchup_matchparen_offscreen = { method = "popup" } -- default 'status'
+vim.g.matchup_delim_noskips = 2                           -- default 0 (doesn't ignore comments) (doesn't seem to work with any value, check source)
 
 -- Enable mouse mode
 vim.o.mouse = 'a'
@@ -396,6 +404,11 @@ vim.defer_fn(function()
       'cpp',
       'lua',
       'bash'
+    },
+
+    matchup = {
+      enabled = true,
+      include_match_words = true -- what does this do?
     },
 
     -- Autoinstall languages that are not installed. Defaults to false (but you can change for yourself!)
