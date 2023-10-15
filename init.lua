@@ -1,6 +1,18 @@
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
+-- Reset the terminal cursror to l-beam
+vim.cmd([[
+  augroup RestoreCursorShapeOnExit
+    autocmd!
+    autocmd VimLeave * lua vim.o.guicursor = "a:ver30-Cursror/lCursror"
+  augroup END
+]])
+
+-- Remove the "How-to disable mouse" menu item and the separator above it
+vim.cmd([[aunmenu PopUp.How-to\ disable\ mouse]])
+vim.cmd([[aunmenu PopUp.-1-]])
+
 -- Install package manager
 --    https://github.com/folke/lazy.nvim
 --    `:help lazy.nvim.txt` for more info
@@ -23,11 +35,24 @@ vim.opt.rtp:prepend(lazypath)
 --  You can also configure plugins after the setup call,
 --    as they will be available in your neovim runtime.
 require('lazy').setup({
-  --1256
-  --lazy = true,
-  --install = {
-  --colorsheme = { 'tokyonight' }
-  --},
+  {
+    "folke/tokyonight.nvim",
+    lazy = false,
+    priority = 1000,
+    opts = {
+      style = "night",
+      transparent = true,
+      styles = {
+        sidebars = "transparent",
+        floats = "transparent",
+      },
+    },
+    config = function(_, opts)
+      local tokyonight = require("tokyonight")
+      tokyonight.setup(opts)
+      tokyonight.load()
+    end,
+  },
   -- NOTE: First, some plugins that don't require any configuration
 
   -- Git related plugins
@@ -110,20 +135,6 @@ require('lazy').setup({
           return '<Ignore>'
         end, { expr = true, buffer = bufnr, desc = 'Jump to previous hunk' })
       end,
-    },
-  },
-
-  {
-    "folke/tokyonight.nvim",
-    lazy = false,
-    priority = 1000,
-    opts = {
-      style = "night",
-      transparent = true,
-      styles = {
-        sidebars = "transparent",
-        floats = "transparent",
-      },
     },
   },
 
@@ -221,14 +232,13 @@ require('lazy').setup({
   --
   --    For additional information see: https://github.com/folke/lazy.nvim#-structuring-your-plugins
   -- { import = 'custom.plugins' },
-}, {})
+}, {
+  install = { colorscheme = { "tokyonight" } },
+})
 
 -- [[ Setting options ]]
 -- See `:help vim.o`
 -- NOTE: You can change these options as you wish!
-
--- Set colorscheme
-vim.cmd.colorscheme('tokyonight')
 
 -- barbecue
 vim.api.nvim_create_autocmd({
@@ -249,9 +259,15 @@ vim.api.nvim_create_autocmd({
 -- Set highlight on search
 vim.o.hlsearch = false
 
--- Make line numbers default
+-- Show line nubers
 vim.wo.number = true
 vim.wo.relativenumber = true
+
+-- Highlight current line
+vim.wo.cursorline = true
+
+-- Customize the CursorLineNr color (make current line visible)
+vim.cmd("highlight CursorLineNr guifg=#ffb673")
 
 -- Options for vim-matchup
 vim.g.matchup_matchparen_offscreen = { method = "popup" } -- default 'status'
