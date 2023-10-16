@@ -342,14 +342,14 @@ vim.api.nvim_create_autocmd('TextYankPost', {
 local custom_theme = require('lualine.themes.auto')
 
 -- Change the color for lualine_c to 'NONE'
-custom_theme.normal.c = { fg = 'NONE', bg = 'NONE' }
+custom_theme.normal.c = { fg = 'ffffff', bg = 'NONE' }
 
 require('lualine').setup {
   options = {
     icons_enabled = true,
     theme = custom_theme,
     component_separators = '|',
-    section_separators = { left = '', right = '' },
+    section_separators = { left = '', right = '' },
     disabled_filetypes = {
       statusline = {},
       winbar = {},
@@ -365,7 +365,7 @@ require('lualine').setup {
   },
   sections = {
     lualine_a = {
-      { 'mode', separator = { left = '' }, right_padding = 2 }
+      { 'mode' }
     },
     lualine_b = { 'branch', 'diff', 'diagnostics', {
       'filename',
@@ -375,7 +375,7 @@ require('lualine').setup {
     lualine_x = {},
     lualine_y = { 'encoding', 'fileformat', 'filetype', 'progress' },
     lualine_z = {
-      { 'location', separator = { right = '' }, left_padding = 2 },
+      { 'location' },
     }
   },
   inactive_sections = {
