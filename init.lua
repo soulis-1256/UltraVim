@@ -74,7 +74,11 @@ require('lazy').setup({
 
       -- Useful status updates for LSP
       -- NOTE: `opts = {}` is the same as calling `require('fidget').setup({})`
-      { 'j-hui/fidget.nvim', tag = 'legacy', opts = {} },
+      {
+        'j-hui/fidget.nvim',
+        tag = 'legacy',
+        opts = {}
+      },
 
       -- Additional lua configuration, makes nvim stuff amazing!
       'folke/neodev.nvim',
@@ -334,10 +338,16 @@ vim.api.nvim_create_autocmd('TextYankPost', {
 })
 
 -- [[ Configure Lualine ]]
+-- Get a copy of the 'auto' theme
+local custom_theme = require('lualine.themes.auto')
+
+-- Change the color for lualine_c to 'NONE'
+custom_theme.normal.c = { fg = 'NONE', bg = 'NONE' }
+
 require('lualine').setup {
   options = {
     icons_enabled = true,
-    theme = 'auto',
+    theme = custom_theme,
     component_separators = '|',
     section_separators = { left = '', right = '' },
     disabled_filetypes = {
@@ -357,10 +367,13 @@ require('lualine').setup {
     lualine_a = {
       { 'mode', separator = { left = '' }, right_padding = 2 }
     },
-    lualine_b = { 'branch', 'diff', 'diagnostics' },
-    lualine_c = { 'filename' },
-    lualine_x = { 'encoding', 'fileformat', 'filetype' },
-    lualine_y = { 'progress' },
+    lualine_b = { 'branch', 'diff', 'diagnostics', {
+      'filename',
+      path = 2 -- 0 = just filename, 1 = relative path, 2 = absolute path
+    } },
+    lualine_c = {},
+    lualine_x = {},
+    lualine_y = { 'encoding', 'fileformat', 'filetype', 'progress' },
     lualine_z = {
       { 'location', separator = { right = '' }, left_padding = 2 },
     }
