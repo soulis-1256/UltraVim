@@ -138,6 +138,14 @@ require('lazy').setup({
     },
   },
 
+  -- install without yarn or npm
+  {
+    "iamcco/markdown-preview.nvim",
+    cmd = { "MarkdownPreviewToggle", "MarkdownPreview", "MarkdownPreviewStop" },
+    ft = { "markdown" },
+    build = function() vim.fn["mkdp#util#install"]() end,
+  },
+
   {
     -- Set lualine as statusline
     'nvim-lualine/lualine.nvim',
@@ -215,8 +223,9 @@ require('lazy').setup({
     build = ':TSUpdate',
   },
 
+  -- Plugin that shows a popup of where a match is (ie matching brackets)
   {
-    'andymass/vim-matchup'
+    'andymass/vim-matchup',
   },
 
   -- NOTE: Next Step on Your Neovim Journey: Add/Configure additional "plugins" for kickstart
@@ -271,7 +280,6 @@ vim.cmd("highlight CursorLineNr guifg=#ffb673")
 
 -- Options for vim-matchup
 vim.g.matchup_matchparen_offscreen = { method = "popup" } -- default 'status'
-vim.g.matchup_delim_noskips = 2                           -- default 0 (doesn't ignore comments) (doesn't seem to work with any value, check source)
 
 -- Enable mouse mode
 vim.o.mouse = 'a'
@@ -413,7 +421,7 @@ vim.keymap.set('n', '<leader>sr', require('telescope.builtin').resume, { desc = 
 -- See `:help nvim-treesitter`
 -- Defer Treesitter setup after first render to improve startup time of 'nvim {filename}'
 vim.defer_fn(function()
-  require('nvim-treesitter.configs').setup {
+  require('nvim-treesitter.configs').setup({
     -- Add languages to be installed here that you want installed for treesitter
     ensure_installed = {
       'c',
@@ -423,14 +431,14 @@ vim.defer_fn(function()
     },
 
     matchup = {
-      enabled = true,
-      include_match_words = true -- what does this do?
+      enable = true,
     },
 
     -- Autoinstall languages that are not installed. Defaults to false (but you can change for yourself!)
     auto_install = false,
 
-    highlight = { enable = true },
+    --highlight = { enable = true },
+    --highlight breaks matching brackets in comments
     indent = { enable = true },
     incremental_selection = {
       enable = true,
@@ -485,7 +493,7 @@ vim.defer_fn(function()
         },
       },
     },
-  }
+  })
 end, 0)
 
 -- Diagnostic keymaps

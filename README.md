@@ -1,3 +1,4 @@
+This is my custom neovim config, based on [kickstart.nvim](https://github.com/nvim-lua/kickstart.nvim).
 ```
 rm -rf ~/.config/nvim
 rm -rf ~/.local/share/nvim
