@@ -36,6 +36,51 @@ vim.opt.rtp:prepend(lazypath)
 --    as they will be available in your neovim runtime.
 require('lazy').setup({
   {
+    "windwp/nvim-autopairs",
+    opts = {
+      fast_wrap = {},
+      disable_filetype = { "TelescopePrompt", "vim" },
+    },
+    config = function(_, opts)
+      require("nvim-autopairs").setup(opts)
+
+      -- setup cmp for autopairs
+      local cmp_autopairs = require "nvim-autopairs.completion.cmp"
+      require("cmp").event:on("confirm_done", cmp_autopairs.on_confirm_done())
+    end,
+  },
+  {
+    "lewis6991/hover.nvim",
+    config = function()
+      require("hover").setup {
+        init = function()
+          -- Require providers
+          require("hover.providers.lsp")
+          -- require('hover.providers.gh')
+          -- require('hover.providers.gh_user')
+          -- require('hover.providers.jira')
+          -- require('hover.providers.man')
+          -- require('hover.providers.dictionary')
+        end,
+        preview_opts = {
+          border = nil
+        },
+        -- Whether the contents of a currently open hover window should be moved
+        -- to a :h preview-window when pressing the hover keymap.
+        preview_window = false,
+        title = true
+      }
+      -- Setup keymaps
+      --vim.keymap.set("n", "K", require("hover").hover, { desc = "hover.nvim" })
+    end,
+  },
+  {
+    'norcalli/nvim-colorizer.lua'
+  },
+  {
+    'hrsh7th/cmp-path',
+  },
+  {
     "folke/tokyonight.nvim",
     lazy = false,
     priority = 1000,
@@ -337,6 +382,11 @@ vim.api.nvim_create_autocmd('TextYankPost', {
   pattern = '*',
 })
 
+-- [[ Configure Colorizer ]]
+
+-- Attaches to every FileType mode
+require 'colorizer'.setup()
+
 -- [[ Configure Lualine ]]
 -- Get a copy of the 'auto' theme
 local custom_theme = require('lualine.themes.auto')
@@ -367,13 +417,13 @@ require('lualine').setup {
     lualine_a = {
       { 'mode' }
     },
-    lualine_b = { 'branch', 'diff', 'diagnostics', {
+    lualine_b = { 'branch', 'diff', 'diagnostics' },
+    lualine_c = { {
       'filename',
-      path = 2 -- 0 = just filename, 1 = relative path, 2 = absolute path
+      path = 2 -- full path
     } },
-    lualine_c = {},
-    lualine_x = {},
-    lualine_y = { 'encoding', 'fileformat', 'filetype', 'progress' },
+    lualine_x = { 'encoding', 'fileformat', 'filetype' },
+    lualine_y = { 'progress' },
     lualine_z = {
       { 'location' },
     }
@@ -688,5 +738,6 @@ cmp.setup {
   sources = {
     { name = 'nvim_lsp' },
     { name = 'luasnip' },
+    { name = 'path' },
   },
 }
