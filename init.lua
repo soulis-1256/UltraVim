@@ -615,8 +615,14 @@ local on_attach = function(_, bufnr)
 end
 
 -- [[ Configure Terminal ]]
---vim.api.nvim_set_keymap('n', '<leader>tf', [[:ToggleTerm direction=float<CR>]], { noremap = true, silent = true })
-vim.keymap.set('n', '<leader>tf', [[:ToggleTerm direction=float<CR>]], { desc = '[F]loating Terminal' })
+vim.api.nvim_set_keymap('n', '<C-t>', [[:ToggleTerm direction=float<CR>]], { noremap = true, silent = true })
+function _G.set_terminal_keymaps()
+  local opts = { buffer = 0 }
+  vim.keymap.set('t', '<C-t>', [[<Cmd>wincmd h<CR>]], opts)
+end
+
+-- if you only want these mappings for toggle term use term://*toggleterm#* instead
+vim.cmd('autocmd! TermOpen term://* lua set_terminal_keymaps()')
 
 -- document existing key chains
 require('which-key').register {
