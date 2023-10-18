@@ -1,11 +1,11 @@
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
--- Reset the terminal cursror to l-beam
+-- Reset the cursor to l-beam after exit
 vim.cmd([[
   augroup RestoreCursorShapeOnExit
     autocmd!
-    autocmd VimLeave * lua vim.o.guicursor = "a:ver30-Cursror/lCursror"
+    autocmd VimLeave * lua vim.o.guicursor = "a:ver30-Cursor/lCursor"
   augroup END
 ]])
 
