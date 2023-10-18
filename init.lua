@@ -36,6 +36,11 @@ vim.opt.rtp:prepend(lazypath)
 --    as they will be available in your neovim runtime.
 require('lazy').setup({
   {
+    'akinsho/bufferline.nvim',
+    version = "*",
+    dependencies = 'nvim-tree/nvim-web-devicons'
+  },
+  {
     "zbirenbaum/copilot-cmp",
     config = function()
       require("copilot_cmp").setup()
@@ -315,6 +320,9 @@ require('lazy').setup({
 -- See `:help vim.o`
 -- NOTE: You can change these options as you wish!
 
+-- bufferline
+vim.o.mousemoveevent = true
+
 -- barbecue
 vim.api.nvim_create_autocmd({
   "WinResized", -- or WinScrolled on lower than NVIM-v0.9
@@ -361,9 +369,10 @@ vim.o.breakindent = true
 -- Save undo history
 vim.o.undofile = true
 
--- Case-insensitive searching UNLESS \C or capital in search
+-- Case-insensitive searching
 vim.o.ignorecase = true
-vim.o.smartcase = true
+-- Limits the case insensitive functionality when using caps in search
+--vim.o.smartcase = true
 
 -- Keep signcolumn on by default
 vim.wo.signcolumn = 'yes'
@@ -577,6 +586,17 @@ require("scrollbar").setup({
     ale = false,      -- Requires ALE
   },
 })
+
+-- [[ Configure bufferline ]]
+require("bufferline").setup {
+  options = {
+    hover = {
+      enabled = true,
+      delay = 0,
+      reveal = { 'close' }
+    }
+  }
+}
 
 -- [[ Highlight on yank ]]
 -- See `:help vim.highlight.on_yank()`
