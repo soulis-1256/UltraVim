@@ -720,6 +720,7 @@ vim.defer_fn(function()
     ensure_installed = {
       'c',
       'cpp',
+      'java',
       'lua',
       'bash'
     },
@@ -878,6 +879,8 @@ require('mason-lspconfig').setup()
 local servers = {
   clangd = {},
 
+  jdtls = {},
+
   bashls = {},
 
   lua_ls = {
@@ -886,6 +889,10 @@ local servers = {
       telemetry = { enable = false },
     },
   },
+}
+
+require("lspconfig").jdtls.setup {
+  filetypes = { 'java' },
 }
 
 require("lspconfig").clangd.setup {
