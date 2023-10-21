@@ -36,6 +36,10 @@ vim.opt.rtp:prepend(lazypath)
 --    as they will be available in your neovim runtime.
 require('lazy').setup({
   {
+    "folke/trouble.nvim",
+    dependencies = { "nvim-tree/nvim-web-devicons" },
+  },
+  {
     'akinsho/bufferline.nvim',
     version = "*",
     dependencies = 'nvim-tree/nvim-web-devicons'
@@ -69,31 +73,6 @@ require('lazy').setup({
       -- setup cmp for autopairs
       local cmp_autopairs = require "nvim-autopairs.completion.cmp"
       require("cmp").event:on("confirm_done", cmp_autopairs.on_confirm_done())
-    end,
-  },
-  {
-    "lewis6991/hover.nvim",
-    config = function()
-      require("hover").setup {
-        init = function()
-          -- Require providers
-          require("hover.providers.lsp")
-          -- require('hover.providers.gh')
-          -- require('hover.providers.gh_user')
-          -- require('hover.providers.jira')
-          -- require('hover.providers.man')
-          -- require('hover.providers.dictionary')
-        end,
-        preview_opts = {
-          border = nil
-        },
-        -- Whether the contents of a currently open hover window should be moved
-        -- to a :h preview-window when pressing the hover keymap.
-        preview_window = false,
-        title = true
-      }
-      -- Setup keymaps
-      --vim.keymap.set("n", "K", require("hover").hover, { desc = "hover.nvim" })
     end,
   },
   {
@@ -355,7 +334,7 @@ vim.cmd("highlight CursorLineNr guifg=#ffb673")
 -- Options for vim-matchup
 vim.g.matchup_matchparen_offscreen = { method = "popup" } -- default 'status'
 
--- Enable mouse mode
+-- Enable mouse for every mode
 vim.o.mouse = 'a'
 
 -- Sync clipboard between OS and Neovim.
@@ -587,6 +566,11 @@ require("scrollbar").setup({
   },
 })
 
+vim.diagnostic.config({
+  virtual_text = false, -- Turn off inline diagnostics
+  update_in_insert = true,
+})
+
 -- [[ Configure bufferline ]]
 require("bufferline").setup {
   options = {
@@ -610,7 +594,6 @@ vim.api.nvim_create_autocmd('TextYankPost', {
 })
 
 -- [[ Configure Colorizer ]]
-
 -- Attaches to every FileType mode
 require 'colorizer'.setup()
 
@@ -974,3 +957,74 @@ cmp.setup {
     { name = 'copilot' }
   },
 }
+
+
+-- Experimental code start 1256
+local error_win = nil
+
+-- Function to create a floating window at specific screen coordinates
+function create_float_window(row, col, width, height)
+  local float_opts = {
+    relative = 'editor',
+    row = row,
+    col = col,
+    width = width,
+    height = height,
+    style = 'minimal',
+    border = 'single',
+  }
+
+  local buf = vim.api.nvim_create_buf(false, true) -- Create an empty buffer
+  local win = vim.api.nvim_open_win(buf, true, float_opts)
+
+  return win, buf
+end
+
+-- Function to close the floating window
+function close_float_window(win, buf)
+  vim.api.nvim_win_close(win, true)
+  vim.api.nvim_buf_delete(buf, { force = true })
+end
+
+-- Define the function to show diagnostics if the cursor is idle
+function show_diagnostics()
+  local bufnr = vim.fn.bufnr("%")
+  local diagnostics = vim.diagnostic.get(0, { bufnr = bufnr })
+
+  local has_diagnostics = false
+  local ok, mouse_pos = pcall(vim.fn.getmousepos)
+  if ok then
+    for _, diagnostic in ipairs(diagnostics) do
+      if diagnostic.lnum == mouse_pos.line - 1 then
+        has_diagnostics = true
+
+
+        -- Create or update the floating window
+        if error_win and vim.api.nvim_win_is_valid(error_win) then
+          close_float_window(error_win, error_buf)
+        end
+
+        error_win, error_buf = create_float_window(mouse_pos.screenrow - 1, mouse_pos.screencol - 1, 40, 5)
+
+        -- Set the content of the floating window with the diagnostic message
+        vim.api.nvim_buf_set_lines(error_buf, 0, -1, false, vim.split(diagnostic.message, "\n"))
+
+        break
+      end
+    end
+  else
+    print("Error getting mouse position")
+  end
+
+  if not has_diagnostics and error_win and vim.api.nvim_win_is_valid(error_win) then
+    close_float_window(error_win, error_buf)
+    error_win = nil
+    error_buf = nil
+  end
+end
+
+-- Create an autocmd using vim.api.nvim_create_autocmd for CursorHold
+vim.api.nvim_exec([[
+  autocmd CursorHold * call v:lua.show_diagnostics()
+]], false)
+-- Experimental code end 1256
