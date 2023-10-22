@@ -902,5 +902,9 @@ function show_diagnostics()
   end
 end
 
-vim.api.nvim_set_keymap('n', '<MouseMove>', '<cmd>lua show_diagnostics()<CR>', { noremap = true, silent = true })
+-- Call the show_diagnostics function every 100ms
+local timer = vim.loop.new_timer()
+timer:start(0, 100, vim.schedule_wrap(function()
+  show_diagnostics()
+end))
 -- Experimental code end 1256
