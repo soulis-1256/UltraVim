@@ -851,10 +851,24 @@ function create_float_window(row, col, width, height)
   return win, buf
 end
 
--- Function to close the floating window
 function close_float_window(win, buf)
-  vim.api.nvim_win_close(win, false)
-  vim.api.nvim_buf_delete(buf, { force = true })
+  local cursor = vim.api.nvim_win_get_cursor(win)
+  local win_pos = vim.api.nvim_win_get_position(win)
+  local win_width = vim.api.nvim_win_get_width(win)
+  local win_height = vim.api.nvim_win_get_height(win)
+
+  if cursor[1] >= win_pos[1] and cursor[1] < win_pos[1] + win_height and cursor[2] >= win_pos[2] and cursor[2] < win_pos[2] + win_width then
+    -- Cursor is inside the floating window, do not close the window and buffer
+    return
+  end
+
+  local timer = vim.loop.new_timer()
+  timer:start(500, 0, vim.schedule_wrap(function()
+    if vim.api.nvim_win_is_valid(win) and vim.api.nvim_buf_is_valid(buf) and vim.api.nvim_get_current_win() ~= win then
+      vim.api.nvim_win_close(win, false)
+      vim.api.nvim_buf_delete(buf, { force = true })
+    end
+  end))
 end
 
 -- Define the function to show diagnostics if the cursor is idle
@@ -869,11 +883,6 @@ function show_diagnostics()
     for _, diagnostic in ipairs(diagnostics) do
       if diagnostic.lnum == (mouse_pos.line - 1) and diagnostic.lnum == (cursor_pos[1] - 1) then
         has_diagnostics = true
-
-        -- Create or update the floating window
-        if error_win and vim.api.nvim_win_is_valid(error_win) then
-          close_float_window(error_win, error_buf)
-        end
 
         error_win, error_buf = create_float_window(mouse_pos.screenrow, mouse_pos.screencol, 40, 5)
 
