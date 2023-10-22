@@ -36,6 +36,9 @@ vim.opt.rtp:prepend(lazypath)
 --    as they will be available in your neovim runtime.
 require('lazy').setup({
   {
+    "RRethy/vim-illuminate",
+  },
+  {
     "folke/trouble.nvim",
     dependencies = { "nvim-tree/nvim-web-devicons" },
   },
@@ -827,6 +830,9 @@ cmp.setup {
 local error_win = nil
 local scrollbar_offset = 1
 local original_win = vim.api.nvim_get_current_win()
+-- variable that distincs this plugin's windows to any other window (like in telescope)
+-- name this whatever, with any value
+local unique_lock = "1256"
 
 -- Function to create a floating window at specific screen coordinates
 function create_float_window()
@@ -836,6 +842,9 @@ function create_float_window()
     focus = false,
   })
   vim.api.nvim_win_set_width(win, vim.api.nvim_win_get_width(win) + scrollbar_offset)
+
+  -- Setting a custom value will ensure uniqueness, but its generally not needed
+  vim.api.nvim_win_set_var(win, unique_lock, "")
   return win
 end
 
@@ -853,29 +862,24 @@ end
 -- Define the function to show diagnostics if the cursor is idle
 function show_diagnostics()
   check_mouse_win_collision(vim.api.nvim_get_current_win())
-  local bufnr = vim.fn.bufnr("%")
-  local diagnostics = vim.diagnostic.get(0, { bufnr = bufnr })
+  local diagnostics = vim.diagnostic.get(0, { bufnr = '%' })
 
   local has_diagnostics = false
   local cursor_pos = vim.api.nvim_win_get_cursor(0)
-  local ok, mouse_pos = pcall(vim.fn.getmousepos)
-  if ok then
-    for _, diagnostic in ipairs(diagnostics) do
-      if diagnostic.lnum == (mouse_pos.line - 1) and diagnostic.lnum == (cursor_pos[1] - 1) then
-        has_diagnostics = true
+  local mouse_pos = vim.fn.getmousepos()
 
-        error_win = create_float_window()
-        break
-      end
+  for _, diagnostic in ipairs(diagnostics) do
+    if diagnostic.lnum == (mouse_pos.line - 1) and diagnostic.lnum == (cursor_pos[1] - 1) then
+      has_diagnostics = true
+
+      error_win = create_float_window()
+      break
     end
-  else
-    print("Error getting mouse position")
   end
 
   if not has_diagnostics and error_win and vim.api.nvim_win_is_valid(error_win) then
     close_float_window(error_win)
     error_win = nil
-    error_buf = nil
   end
 end
 
@@ -893,6 +897,7 @@ function check_mouse_win_collision(new_win)
   local expr2 = ((mouse_pos.screencol - 1 - scrollbar_offset) <= (win_pad[2] + win_width))
   local expr3 = ((mouse_pos.screenrow - 1) >= win_pad[1])
   local expr4 = ((mouse_pos.screenrow - 2) <= (win_pad[1] + win_height))
+  local expr5, _ = pcall(vim.api.nvim_win_get_var, new_win, unique_lock)
 
   --[[print("Base Window: " .. original_win .. ", New Window: " .. new_win ..
     "Window Height: " ..
@@ -913,10 +918,12 @@ function check_mouse_win_collision(new_win)
   if (expr1 and expr2 and expr3 and expr4) then
     vim.api.nvim_set_current_win(new_win)
   else
-    vim.api.nvim_input('<Esc>')
-    vim.defer_fn(function()
-      vim.api.nvim_set_current_win(original_win)
-    end, 50)
+    if expr5 then
+      vim.api.nvim_input('<Esc>')
+      vim.defer_fn(function()
+        vim.api.nvim_set_current_win(original_win)
+      end, 50)
+    end
   end
 end
 
