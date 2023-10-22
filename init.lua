@@ -825,54 +825,34 @@ cmp.setup {
 
 -- Experimental code start 1256
 local error_win = nil
+local scrollbar_offset = 1
+local original_win = vim.api.nvim_get_current_win()
 
 -- Function to create a floating window at specific screen coordinates
-function create_float_window(row, col, width, height)
-  --[[local float_opts = {
-    relative = 'editor',
-    row = row,
-    col = col,
-    width = width,
-    height = height,
-    style = 'minimal',
-    border = 'single',
-    focusable = true,
-  }]]
-
-  local buf = vim.api.nvim_create_buf(false, true) -- Create an empty buffer
+function create_float_window()
   local _, win = vim.diagnostic.open_float(0, {
     border = "single",
     focusable = true,
     focus = false,
   })
-  vim.api.nvim_win_set_width(win, vim.api.nvim_win_get_width(win) + 1)
-  --local win = vim.api.nvim_open_win(buf, false, float_opts)
-
-  return win, buf
+  vim.api.nvim_win_set_width(win, vim.api.nvim_win_get_width(win) + scrollbar_offset)
+  return win
 end
 
-function close_float_window(win, buf)
-  local cursor = vim.api.nvim_win_get_cursor(win)
-  local win_pos = vim.api.nvim_win_get_position(win)
-  local win_width = vim.api.nvim_win_get_width(win)
-  local win_height = vim.api.nvim_win_get_height(win)
-
-  if cursor[1] >= win_pos[1] and cursor[1] < win_pos[1] + win_height and cursor[2] >= win_pos[2] and cursor[2] < win_pos[2] + win_width then
-    -- Cursor is inside the floating window, do not close the window and buffer
-    return
-  end
+function close_float_window(win)
+  check_mouse_win_collision(win)
 
   local timer = vim.loop.new_timer()
-  timer:start(500, 0, vim.schedule_wrap(function()
-    if vim.api.nvim_win_is_valid(win) and vim.api.nvim_buf_is_valid(buf) and vim.api.nvim_get_current_win() ~= win then
+  timer:start(100, 0, vim.schedule_wrap(function()
+    if vim.api.nvim_win_is_valid(win) and vim.api.nvim_get_current_win() ~= win then
       vim.api.nvim_win_close(win, false)
-      vim.api.nvim_buf_delete(buf, { force = true })
     end
   end))
 end
 
 -- Define the function to show diagnostics if the cursor is idle
 function show_diagnostics()
+  check_mouse_win_collision(vim.api.nvim_get_current_win())
   local bufnr = vim.fn.bufnr("%")
   local diagnostics = vim.diagnostic.get(0, { bufnr = bufnr })
 
@@ -884,10 +864,7 @@ function show_diagnostics()
       if diagnostic.lnum == (mouse_pos.line - 1) and diagnostic.lnum == (cursor_pos[1] - 1) then
         has_diagnostics = true
 
-        error_win, error_buf = create_float_window(mouse_pos.screenrow, mouse_pos.screencol, 40, 5)
-
-        -- Set the content of the floating window with the diagnostic message
-        --vim.api.nvim_buf_set_lines(error_buf, 0, -1, false, vim.split(diagnostic.message, "\n"))
+        error_win = create_float_window()
         break
       end
     end
@@ -896,15 +873,55 @@ function show_diagnostics()
   end
 
   if not has_diagnostics and error_win and vim.api.nvim_win_is_valid(error_win) then
-    close_float_window(error_win, error_buf)
+    close_float_window(error_win)
     error_win = nil
     error_buf = nil
   end
 end
 
+function check_mouse_win_collision(new_win)
+  if (original_win == new_win) then
+    return
+  end
+
+  local win_height = vim.api.nvim_win_get_height(new_win)
+  local win_width = vim.api.nvim_win_get_width(new_win)
+  local win_pad = vim.api.nvim_win_get_position(new_win)
+  local mouse_pos = vim.fn.getmousepos()
+
+  local expr1 = ((mouse_pos.screencol - 1) >= win_pad[2])
+  local expr2 = ((mouse_pos.screencol - 1 - scrollbar_offset) <= (win_pad[2] + win_width))
+  local expr3 = ((mouse_pos.screenrow - 1) >= win_pad[1])
+  local expr4 = ((mouse_pos.screenrow - 2) <= (win_pad[1] + win_height))
+
+  --[[print("Base Window: " .. original_win .. ", New Window: " .. new_win ..
+    "Window Height: " ..
+    win_height ..
+    ", Window Width: " ..
+    win_width ..
+    ", win_pad[1]: " ..
+    win_pad[1] ..
+    ", win_pad[2]: " ..
+    win_pad[2] ..
+    ", ScreenCol: " ..
+    mouse_pos.screencol ..
+    ", ScreenRow: " ..
+    mouse_pos.screenrow ..
+    ", expr1: " ..
+    tostring(expr1) .. ", expr2: " .. tostring(expr2) .. ", expr3: " .. tostring(expr3) .. ", expr4: " .. tostring(expr3))]]
+
+  if (expr1 and expr2 and expr3 and expr4) then
+    vim.api.nvim_set_current_win(new_win)
+  else
+    vim.api.nvim_input('<Esc>')
+    vim.defer_fn(function()
+      vim.api.nvim_set_current_win(original_win)
+    end, 50)
+  end
+end
+
 -- Call the show_diagnostics function every 100ms
-local timer = vim.loop.new_timer()
-timer:start(0, 100, vim.schedule_wrap(function()
+vim.loop.new_timer():start(0, 100, vim.schedule_wrap(function()
   show_diagnostics()
 end))
 -- Experimental code end 1256
