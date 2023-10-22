@@ -979,17 +979,18 @@ function create_float_window(row, col, width, height)
     height = height,
     style = 'minimal',
     border = 'single',
+    focusable = false,
   }
 
   local buf = vim.api.nvim_create_buf(false, true) -- Create an empty buffer
-  local win = vim.api.nvim_open_win(buf, true, float_opts)
+  local win = vim.api.nvim_open_win(buf, false, float_opts)
 
   return win, buf
 end
 
 -- Function to close the floating window
 function close_float_window(win, buf)
-  vim.api.nvim_win_close(win, true)
+  vim.api.nvim_win_close(win, false)
   vim.api.nvim_buf_delete(buf, { force = true })
 end
 
@@ -1011,7 +1012,7 @@ function show_diagnostics()
           close_float_window(error_win, error_buf)
         end
 
-        error_win, error_buf = create_float_window(mouse_pos.screenrow - 1, mouse_pos.screencol - 1, 40, 5)
+        error_win, error_buf = create_float_window(mouse_pos.screenrow, mouse_pos.screencol, 40, 5)
 
         -- Set the content of the floating window with the diagnostic message
         vim.api.nvim_buf_set_lines(error_buf, 0, -1, false, vim.split(diagnostic.message, "\n"))
@@ -1030,8 +1031,5 @@ function show_diagnostics()
   end
 end
 
--- Create an autocmd using vim.api.nvim_create_autocmd for CursorHold
-vim.api.nvim_exec([[
-  autocmd CursorHold * call v:lua.show_diagnostics()
-]], false)
+vim.api.nvim_set_keymap('n', '<MouseMove>', '<cmd>lua show_diagnostics()<CR>', { noremap = true, silent = true })
 -- Experimental code end 1256
