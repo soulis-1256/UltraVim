@@ -36,7 +36,10 @@ vim.opt.rtp:prepend(lazypath)
 --    as they will be available in your neovim runtime.
 require('lazy').setup({
   {
-    "RRethy/vim-illuminate",
+    "sindrets/diffview.nvim",
+  },
+  {
+    "RREthy/vim-illuminate",
   },
   {
     "folke/trouble.nvim",
@@ -379,9 +382,13 @@ vim.keymap.set({ 'n', 'v' }, '<Space>', '<Nop>', { silent = true })
 vim.keymap.set('n', 'k', "v:count == 0 ? 'gk' : 'k'", { expr = true, silent = true })
 vim.keymap.set('n', 'j', "v:count == 0 ? 'gj' : 'j'", { expr = true, silent = true })
 
+-- [[ Configure diff ]]
+require('diffview').setup()
+
+-- [[ Configure illuminate ]]
 require('illuminate').configure({
+  -- providers: provider used to get references in the buffer, ordered by priority
   providers = {
-    'treesitter',
     'regex',
   },
 })
@@ -803,6 +810,11 @@ local unique_lock = "1256"
 
 -- Function to create a floating window at specific screen coordinates
 function create_float_window()
+  local status, _ = pcall(vim.api.nvim_win_get_var, error_win, unique_lock)
+  if status then
+    return
+  end
+
   local _, win = vim.diagnostic.open_float(0, {
     border = "single",
     focusable = true,
@@ -810,25 +822,20 @@ function create_float_window()
   })
   vim.api.nvim_win_set_width(win, vim.api.nvim_win_get_width(win) + scrollbar_offset)
 
-  -- Setting a custom value will ensure uniqueness, but its generally not needed
+  -- Setting a custom value will ensure uniqueness, but it shouldn't be needed
   vim.api.nvim_win_set_var(win, unique_lock, "")
-  return win
+  error_win = win
 end
 
 function close_float_window(win)
   check_mouse_win_collision(win)
 
-  local timer = vim.loop.new_timer()
-  timer:start(100, 0, vim.schedule_wrap(function()
-    if vim.api.nvim_win_is_valid(win) and vim.api.nvim_get_current_win() ~= win then
-      vim.api.nvim_win_close(win, false)
-    end
-  end))
+  if vim.api.nvim_win_is_valid(win) and vim.api.nvim_get_current_win() ~= win then
+    vim.api.nvim_win_close(win, false)
+  end
 end
 
--- Define the function to show diagnostics if the cursor is idle
-function show_diagnostics()
-  check_mouse_win_collision(vim.api.nvim_get_current_win())
+function check_diagnostics()
   local diagnostics = vim.diagnostic.get(0, { bufnr = '%' })
 
   local has_diagnostics = false
@@ -838,15 +845,25 @@ function show_diagnostics()
   for _, diagnostic in ipairs(diagnostics) do
     if diagnostic.lnum == (mouse_pos.line - 1) and diagnostic.lnum == (cursor_pos[1] - 1) then
       has_diagnostics = true
-
-      error_win = create_float_window()
       break
     end
   end
+  return has_diagnostics
+end
 
-  if not has_diagnostics and error_win and vim.api.nvim_win_is_valid(error_win) then
-    close_float_window(error_win)
-    error_win = nil
+function show_diagnostics()
+  if vim.fn.mode() ~= 'n' then
+    return
+  end
+
+  check_mouse_win_collision(vim.api.nvim_get_current_win())
+  if (check_diagnostics()) then
+    create_float_window()
+  else
+    if error_win and vim.api.nvim_win_is_valid(error_win) then
+      close_float_window(error_win)
+      error_win = nil
+    end
   end
 end
 
@@ -886,15 +903,12 @@ function check_mouse_win_collision(new_win)
     vim.api.nvim_set_current_win(new_win)
   else
     if expr5 then
-      vim.api.nvim_input('<Esc>')
-      vim.defer_fn(function()
-        vim.api.nvim_set_current_win(original_win)
-      end, 50)
+      vim.api.nvim_set_current_win(original_win)
     end
   end
 end
 
--- Call the show_diagnostics function every 100ms
+-- Run show_diagnostics() periodically
 vim.loop.new_timer():start(0, 100, vim.schedule_wrap(function()
   show_diagnostics()
 end))
