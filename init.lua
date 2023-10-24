@@ -305,7 +305,7 @@ require('lazy').setup({
 -- See `:help vim.o`
 -- NOTE: You can change these options as you wish!
 
--- bufferline
+-- bufferline and hover plugin
 vim.o.mousemoveevent = true
 
 -- barbecue
@@ -851,7 +851,10 @@ function check_diagnostics()
   return has_diagnostics
 end
 
+local isMouseMoving = false
+
 function show_diagnostics()
+  isMouseMoving = true
   if vim.fn.mode() ~= 'n' then
     return
   end
@@ -908,8 +911,34 @@ function check_mouse_win_collision(new_win)
   end
 end
 
--- Run show_diagnostics() periodically
-vim.loop.new_timer():start(0, 100, vim.schedule_wrap(function()
-  show_diagnostics()
+-- making detect_mouse_timer smaller will make scroll detect faster
+local detect_mouse_timer = 50
+local detect_scroll_timer = 3 * detect_mouse_timer
+local last_line = -1
+
+-- Function that detects if the user scrolled with the mouse wheel, based on vim.fn.getmousepos().line
+local function detectScroll()
+  local mousePos = vim.fn.getmousepos()
+
+  if mousePos.line ~= last_line then
+    last_line = mousePos.line
+    vim.cmd("lua show_diagnostics()")
+  end
+end
+
+-- Timer that resets mouse movement after some time (detect if mouse isn't moving)
+vim.loop.new_timer():start(0, detect_mouse_timer, vim.schedule_wrap(function()
+  if isMouseMoving then
+    isMouseMoving = false
+  end
 end))
+
+-- Run detectScroll()
+vim.loop.new_timer():start(0, detect_scroll_timer, vim.schedule_wrap(function()
+  if (not isMouseMoving) then
+    detectScroll()
+  end
+end))
+
+vim.api.nvim_set_keymap('n', '<MouseMove>', '<cmd>lua show_diagnostics()<CR>', { noremap = true, silent = true })
 -- Experimental code end 1256
