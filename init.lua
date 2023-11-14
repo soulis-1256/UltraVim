@@ -6,8 +6,8 @@ vim.cmd([[
   augroup RestoreCursorShapeOnExit
     autocmd!
     autocmd VimLeave * lua vim.o.guicursor = "a:ver30-Cursor/lCursor"
-  augroup END
-]])
+  augroup END]])
+
 
 -- Remove the "How-to disable mouse" menu item and the separator above it
 vim.cmd([[aunmenu PopUp.How-to\ disable\ mouse]])
@@ -432,7 +432,10 @@ vim.api.nvim_create_autocmd('TextYankPost', {
 })
 
 -- [[ Configure hoverhints ]]
-require("hoverhints")
+require("hoverhints").setup({
+  max_width_factor = 0.5,
+  scrollbar_offset = 1,
+})
 
 -- [[ Configure Colorizer ]]
 -- Attaches to every FileType mode
