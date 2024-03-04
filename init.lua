@@ -36,7 +36,7 @@ vim.opt.rtp:prepend(lazypath)
 --    as they will be available in your neovim runtime.
 require('lazy').setup({
   {
-    "soulis-1256/hoverhints.nvim"
+    "soulis-1256/eagle.nvim"
   },
   {
     "sindrets/diffview.nvim",
@@ -431,9 +431,8 @@ vim.api.nvim_create_autocmd('TextYankPost', {
   pattern = '*',
 })
 
--- [[ Configure hoverhints ]]
-require("hoverhints").setup({
-  max_width_factor = 0.5,
+-- [[ Configure eagle ]]
+require("eagle").setup({
   scrollbar_offset = 1,
 })
 
