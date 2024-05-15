@@ -36,7 +36,13 @@ vim.opt.rtp:prepend(lazypath)
 --    as they will be available in your neovim runtime.
 require('lazy').setup({
   {
-    "soulis-1256/eagle.nvim"
+    "nvim-neotest/nvim-nio"
+  },
+  {
+    "elkowar/yuck.vim"
+  },
+  {
+    "soulis-1256/eagle.nvim",
   },
   {
     "sindrets/diffview.nvim",
